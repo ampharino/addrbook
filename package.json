@@ -1,0 +1,16 @@
+{
+  "name": "addrbook",
+  "version": "1.0.0",
+  "description": "RESTful API for an address book",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Ampharin Ongvises",
+  "license": "MIT",
+  "dependencies": {
+    "elasticsearch": "^14.2.2",
+    "express": "^4.16.3"
+  }
+}
