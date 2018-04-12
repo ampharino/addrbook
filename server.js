@@ -1,16 +1,14 @@
-const elasticsearch = require('elasticsearch');
-const config = require('./config/connection');
-const client = new elasticsearch.Client({
-    host:config.elastic_connection,
-    log:'trace'
-})
 
-client.ping({
-    requestTimeout: 30000,
-}, function (error) {
-    if (error) {
-        console.error('elasticsearch cluster is down!');
-    } else {
-        console.log('All is well');
-    }
-});
+const express = require('express');
+const bodyParser = require('body-parser');
+const contact = require('./routes/contact')
+
+const client = require('./elastic');
+const app = express();
+
+app.use(bodyParser.urlencoded({extended:false}))
+app.use(bodyParser.json());
+
+app.use('/api/contact',contact);
+app.listen(3000, () => console.log('Server running on port 3000'))
+

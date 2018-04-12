@@ -10,6 +10,7 @@
   "author": "Ampharin Ongvises",
   "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.18.2",
     "elasticsearch": "^14.2.2",
     "express": "^4.16.3"
   }
