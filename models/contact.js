@@ -6,7 +6,15 @@ const Contact = {
         properties:{
             name:{type:"text"},
             number:{type:"text"},
-            address:{type:"text"}
+            address:{
+                properties:{
+                    street:{type:'text'},
+                    city:{type:'text'},
+                    state:{type:'text'},
+                    zipcode:{type:'text'},
+                    country:{type:'text'}
+                }
+            }
         }
     }
 }

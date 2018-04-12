@@ -1,65 +1,22 @@
 const router = require('express').Router();
 const client = require('../elastic');
+const util = require('../utility/function');
 
-function addContact(name,number,address){
-    return client.index({
-        index:'addressbook',
-        type:'contact',
-        body:{
-            name:name,
-            number:number,
-            address:address
-        }
+/**GET /contact
+ * returns all contacts
+ * accepts a pageSize and page parameter
+ * NOTE -- elasticsearch queries are not working
+ */
+router.get('/',(req,res)=>{
+    pageSize = req.query.pageSize;
+    page = req.query.page;
+    query = req.query.query
+
+    util.getAll(pageSize,page,query).then(function(result){
+        res.status(200).json({result:result.hits});
     })
-}
+})
 
-function findContact(name){
-    return client.search({
-        index:'addressbook',
-        type:'contact',
-        body:{
-            query:{
-                match:{
-                    name:name
-                }
-            }
-        }
-    })
-}
-
-function deleteContact(contactId){
-    return client.delete({
-        index:'addressbook',
-        type:'contact',
-        id:contactId
-    })
-}
-
-function updateContact(name,number,address,contactId){
-    return client.index({
-        index: 'addressbook',
-        type: 'contact',
-        id: contactId,
-        body: {
-            name: name,
-            number: number,
-            address: address
-        }
-    })
-}
-
-function validate(name,number,address){
-    if(name == "" || name == undefined || name.length > 20){
-        return false;
-    }
-    if(number && number.length > 50){
-        return false;
-    }
-    if(address && address.length > 500){
-        return false;
-    }
-    return true;
-}
 
 /**
  * POST /contact
@@ -71,15 +28,15 @@ router.post('/', (req,res)=>{
     number = req.body.number;
     address = req.body.address;
 
-    if(!validate(name,number,address)){
+    if(!util.validate(name,number,address)){
         return res.status(400).json({message:'Please enter proper values'})
     }
-    findContact(name).then(function(result){
+    util.findContact(name).then(function(result){
         if(result.hits.total > 0){
             return res.status(400).json({message:"Contact already exists"})
         }
         else{
-            addContact(name,number,address).then(function(contact){
+            util.addContact(name,number,address).then(function(contact){
                 return res.status(201).json({message:"Created new contact",body:contact})
 
             })
@@ -95,10 +52,10 @@ router.post('/', (req,res)=>{
 router.get('/:name', (req,res)=>{
     name = req.params.name;
 
-    if(!validate(name)){
+    if(!util.validate(name)){
         return res.status(400).json({message:'Please enter a proper name'})
     }
-    findContact(name).then(function(result){
+    util.findContact(name).then(function(result){
         if(result.hits.total == 0){
             return res.status(400).json({message:"No contact with matching name"})
         }
@@ -116,16 +73,16 @@ router.get('/:name', (req,res)=>{
 router.delete('/:name', (req,res)=>{
     name = req.params.name;
 
-    if(!validate(name)){
+    if(!util.validate(name)){
        return res.status(400).json({message:'Please enter a proper name'})
     }
-    findContact(name).then(function(result){
+    util.findContact(name).then(function(result){
         if(result.hits.total == 0){
             return res.status(400).json({message:"no contact with matching name"})
         }
         else{
             contactId = result.hits.hits[0]._id;
-            deleteContact(contactId).then(function(contact){
+            util.deleteContact(contactId).then(function(contact){
                 return res.status(200).json({message:'deleted contact',body:contact})
             })
         }
@@ -144,22 +101,22 @@ router.put('/:name', (req,res)=>{
     number = req.body.number;
     address = req.body.address;
 
-    if(!validate(newName,number,address)){
+    if(!util.validate(newName,number,address)){
         return res.status(400).json({message:'Please enter proper values'});
     }
-    findContact(name).then(function(result){
+    util.findContact(name).then(function(result){
         if(result.hits.total == 0){
             return res.status(400).json({message:"no contact with matching name"});
         }
         if(newName != name){
-            findContact(newName).then(function(result2){
+            util.findContact(newName).then(function(result2){
                 if(result2.hits.total > 0){
                     return res.status(400).json({message:newName + " is already a contact"});
                 }
             })
         }
         contactId = result.hits.hits[0]._id
-        updateContact(newName,number,address,contactId).then(function(contact){
+        util.updateContact(newName,number,address,contactId).then(function(contact){
             return res.status(200).json({message:'updated contact',body:contact});
         })
 

@@ -8,10 +8,9 @@ const Contact = require('./models/contact');
 const client = new elasticsearch.Client({
     host:config.elastic_connection,
     log:'info'
-})
+});
 
 
-//helper functions to reduce callback hell
 function deleteIndex() {
     return client.indices.delete({index: 'addressbook'});
 }
@@ -20,6 +19,9 @@ function initIndex() {
 }
 function indexExists() {
     return client.indices.exists({index: 'addressbook'});
+}
+function setMapping() {
+    return client.indices.putMapping(Contact);
 }
 
 
@@ -30,29 +32,26 @@ client.ping({requestTimeout: 30000},function (err){
         if(err){
             console.log("elasticsearch cluster is down")
         }
-        else{
-            console.log("elasticsearch cluster is up")
-            indexExists().then(function (exists){
-                if(exists){
-                    console.log("Deleting existing index")
-                    return deleteIndex();
+        else {
+            indexExists().then(function (exists) {
+                if (exists) {
+                    console.log("index already exists")
                 }
-            }).then(function () {
-                initIndex().then(function (success){
-                    if(success){
-                        console.log("created index",success);
-                        client.indices.putMapping(Contact, function(err,res,status){
-                                if(err){
-                                console.log(err);
-                            }
-                        })
-                    }
-                    else{
-                        console.log("error creating index");
-                    }
-                })
+                else {
+                    initIndex().then(function (success) {
+                        if (success) {
+                            console.log("created index", success);
+                            setMapping().then(function (resp){
+                                console.log(resp);
+                            })
+                        }
+                        else {
+                            console.log("error creating index");
+                        }
+                    })
+                }
             })
         }
-    })
+})
 
 module.exports = client;
