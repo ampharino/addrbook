@@ -1,25 +1,169 @@
 const router = require('express').Router();
 const client = require('../elastic');
 
-function addContact(req){
+function addContact(name,number,address){
     return client.index({
         index:'addressbook',
         type:'contact',
         body:{
-            name:req.body.name,
-            number:req.body.number,
-            address:req.body.address
+            name:name,
+            number:number,
+            address:address
         }
     })
 }
 
+function findContact(name){
+    return client.search({
+        index:'addressbook',
+        type:'contact',
+        body:{
+            query:{
+                match:{
+                    name:name
+                }
+            }
+        }
+    })
+}
 
+function deleteContact(contactId){
+    return client.delete({
+        index:'addressbook',
+        type:'contact',
+        id:contactId
+    })
+}
+
+function updateContact(name,number,address,contactId){
+    return client.index({
+        index: 'addressbook',
+        type: 'contact',
+        id: contactId,
+        body: {
+            name: name,
+            number: number,
+            address: address
+        }
+    })
+}
+
+function validate(name,number,address){
+    if(name == "" || name == undefined || name.length > 20){
+        return false;
+    }
+    if(number && number.length > 50){
+        return false;
+    }
+    if(address && address.length > 500){
+        return false;
+    }
+    return true;
+}
+
+/**
+ * POST /contact
+ * validates request and then checks if name already exists
+ * adds contact if false, returns error otherwise
+ */
 router.post('/', (req,res)=>{
-    addContact(req)
-        .then(function(contact){
-            res.status(201).json(contact);
-        })
+    name = req.body.name;
+    number = req.body.number;
+    address = req.body.address;
+
+    if(!validate(name,number,address)){
+        return res.status(400).json({message:'Please enter proper values'})
+    }
+    findContact(name).then(function(result){
+        if(result.hits.total > 0){
+            return res.status(400).json({message:"Contact already exists"})
+        }
+        else{
+            addContact(name,number,address).then(function(contact){
+                return res.status(201).json({message:"Created new contact",body:contact})
+
+            })
+        }
+    })
 })
 
+/**
+ * GET /contact/:name
+ * validates request
+ * and then searches for contact
+ */
+router.get('/:name', (req,res)=>{
+    name = req.params.name;
+
+    if(!validate(name)){
+        return res.status(400).json({message:'Please enter a proper name'})
+    }
+    findContact(name).then(function(result){
+        if(result.hits.total == 0){
+            return res.status(400).json({message:"No contact with matching name"})
+        }
+        else{
+            return res.status(200).json(result.hits.hits[0]._source)
+        }
+    })
+})
+
+/**
+ * DELETE /contact/:name
+ * validates request and then searches for contact
+ * deletes contact if contact exists, returns error otherwise
+ */
+router.delete('/:name', (req,res)=>{
+    name = req.params.name;
+
+    if(!validate(name)){
+       return res.status(400).json({message:'Please enter a proper name'})
+    }
+    findContact(name).then(function(result){
+        if(result.hits.total == 0){
+            return res.status(400).json({message:"no contact with matching name"})
+        }
+        else{
+            contactId = result.hits.hits[0]._id;
+            deleteContact(contactId).then(function(contact){
+                return res.status(200).json({message:'deleted contact',body:contact})
+            })
+        }
+    })
+})
+
+/**
+ * PUT /contact/:name
+ * validates request and then checks if contact exists
+ * returns error if not, otherwise checks that updated name does not already exist
+ * updates contact if everything is fine
+ */
+router.put('/:name', (req,res)=>{
+    name = req.params.name
+    newName = req.body.name;
+    number = req.body.number;
+    address = req.body.address;
+
+    if(!validate(newName,number,address)){
+        return res.status(400).json({message:'Please enter proper values'});
+    }
+    findContact(name).then(function(result){
+        if(result.hits.total == 0){
+            return res.status(400).json({message:"no contact with matching name"});
+        }
+        if(newName != name){
+            findContact(newName).then(function(result2){
+                if(result2.hits.total > 0){
+                    return res.status(400).json({message:newName + " is already a contact"});
+                }
+            })
+        }
+        contactId = result.hits.hits[0]._id
+        updateContact(newName,number,address,contactId).then(function(contact){
+            return res.status(200).json({message:'updated contact',body:contact});
+        })
+
+    })
+})
 
 module.exports = router;

@@ -41,12 +41,11 @@ client.ping({requestTimeout: 30000},function (err){
                 initIndex().then(function (success){
                     if(success){
                         console.log("created index",success);
-                        client.indices.putMapping(Contact,
-                            function(err,res,status){
+                        client.indices.putMapping(Contact, function(err,res,status){
                                 if(err){
                                 console.log(err);
                             }
-                            })
+                        })
                     }
                     else{
                         console.log("error creating index");
