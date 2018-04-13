@@ -31,3 +31,5 @@ Contacts have the following mapping:
         }
     }
 ```
+
+The only required field is `name`
