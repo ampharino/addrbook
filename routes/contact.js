@@ -10,10 +10,12 @@ const util = require('../utility/function');
 router.get('/',(req,res)=>{
     pageSize = req.query.pageSize;
     page = req.query.page;
-    query = req.query.query
+    query = req.query.query;
 
     util.getAll(pageSize,page,query).then(function(result){
         res.status(200).json({result:result.hits});
+    }).catch(function(err){
+        console.log(err)
     })
 })
 
@@ -60,7 +62,7 @@ router.get('/:name', (req,res)=>{
             return res.status(400).json({message:"No contact with matching name"})
         }
         else{
-            return res.status(200).json(result.hits.hits[0]._source)
+            return res.status(200).json({message:'Found contact',body:result.hits.hits[0]._source})
         }
     })
 })
@@ -78,7 +80,7 @@ router.delete('/:name', (req,res)=>{
     }
     util.findContact(name).then(function(result){
         if(result.hits.total == 0){
-            return res.status(400).json({message:"no contact with matching name"})
+            return res.status(400).json({message:"No contact with matching name"})
         }
         else{
             contactId = result.hits.hits[0]._id;
@@ -96,7 +98,7 @@ router.delete('/:name', (req,res)=>{
  * updates contact if everything is fine
  */
 router.put('/:name', (req,res)=>{
-    name = req.params.name
+    name = req.params.name;
     newName = req.body.name;
     number = req.body.number;
     address = req.body.address;
@@ -106,7 +108,7 @@ router.put('/:name', (req,res)=>{
     }
     util.findContact(name).then(function(result){
         if(result.hits.total == 0){
-            return res.status(400).json({message:"no contact with matching name"});
+            return res.status(400).json({message:"No contact with matching name"});
         }
         if(newName != name){
             util.findContact(newName).then(function(result2){

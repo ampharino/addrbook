@@ -13,3 +13,5 @@ app.use(bodyParser.json());
 app.use('/api/contact',contact);
 app.listen(port, () => console.log('Server running on port ' + port))
 
+module.exports = app;
+

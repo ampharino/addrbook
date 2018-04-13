@@ -16,7 +16,7 @@ functions.getAll = (pageSize=10,page=1,query={})=>{
     })
 
 }
-functions.addContact = (name,number,address={})=>{
+functions.addContact = (name,number="",address={})=>{
     return client.index({
         index:'addressbook',
         type:'contact',
@@ -57,7 +57,7 @@ functions.deleteContact = (contactId)=>{
     })
 }
 
-functions.updateContact = (name,number,address={},contactId) =>{
+functions.updateContact = (name,number="",address={},contactId) =>{
     return client.index({
         index: 'addressbook',
         type: 'contact',

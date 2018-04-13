@@ -39,16 +39,11 @@ client.ping({requestTimeout: 30000},function (err){
                 }
                 else {
                     initIndex().then(function (success) {
-                        if (success) {
-                            console.log("created index", success);
-                            setMapping().then(function (resp){
-                                console.log(resp);
-                            })
-                        }
-                        else {
-                            console.log("error creating index");
-                        }
-                    })
+                        console.log("created index", success);
+                        setMapping().then(function (resp){
+                            console.log(resp);
+                        })
+                    }).catch(function(err){})
                 }
             })
         }
