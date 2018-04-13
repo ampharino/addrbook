@@ -8,6 +8,25 @@ RESTful API for an address book with an Elasticsearch data store
 4. Run `npm test` to run mocha unit tests. 
 
 ## Misc.
-I recommend making requests to the server via Postman.
-Requests should be made to `localhost:PORT/api/contact`
+I recommend making requests to the server via Postman. Requests should be made to `localhost:PORT/api/contact`
 
+Contacts have the following mapping: 
+
+```index: 'addressbook',
+    type: 'contact',
+    body:{
+        properties:{
+            name:{type:"text"},
+            number:{type:"text"},
+            address:{
+                properties:{
+                    street:{type:'text'},
+                    city:{type:'text'},
+                    state:{type:'text'},
+                    zipcode:{type:'text'},
+                    country:{type:'text'}
+                }
+            }
+        }
+    }
+```
