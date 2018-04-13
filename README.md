@@ -12,7 +12,8 @@ I recommend making requests to the server via Postman. Requests should be made t
 
 Contacts have the following mapping: 
 
-```index: 'addressbook',
+```
+    index: 'addressbook',
     type: 'contact',
     body:{
         properties:{
